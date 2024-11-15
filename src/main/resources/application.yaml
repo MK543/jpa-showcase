@@ -1,0 +1,80 @@
+spring:
+  application:
+    name: demo
+  datasource:
+    hikari:
+      auto-commit: true
+      maximum-pool-size: 4
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgres
+  kafka:
+    properties:
+      security:
+        protocol: SASL_PLAINTEXT
+      sasl:
+        mechanism: PLAIN
+        jaas:
+          config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_USER:client_user}" password="${KAFKA_PASSWORD:client_password}";
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: test-group
+      auto-offset-reset: latest
+      enable-auto-commit: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+  threads:
+    virtual:
+      enabled: true
+logging:
+  level:
+    org.springframework.kafka: info
+    com.example.demo: debug
+  config: "classpath:logback-spring.xml"
+
+user:
+  kafka:
+    topic: test-topic
+
+decorator:
+  datasource:
+    flexy-pool:
+      acquisition-strategy:
+        increment-pool:
+          max-overgrow-pool-size: 15 #maksymalna liczba dodatkowych połączeń
+          timeout-millis: 20 #
+        retry:
+          attempts: 2
+      threshold:
+        connection:
+          acquisition: 50 #log
+          lease: 1000 #log
+    datasource-proxy:
+      logging: slf4j
+      query:
+        enable-logging: true
+        log-level: info
+        logger-name:
+      slow-query:
+        enable-logging: true
+        log-level: warn
+        logger-name:
+        threshold: 300
+
+      multiline: true
+      format-sql: false
+      json-format: true
+      count-query: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
